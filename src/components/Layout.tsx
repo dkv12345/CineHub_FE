@@ -148,3 +148,8 @@ export function Chatbot({ lift }: { lift?: boolean }) {
     </div>
   );
 }
+
+import { AIRecommendation } from '../data';
+
+// State lưu danh sách gợi ý trong khung chat
+const [aiRecommendations, setAiRecommendations] = useState([]);
