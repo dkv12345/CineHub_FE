@@ -82,3 +82,12 @@ export default function Showtimes({ movieId }: { movieId: number | null }) {
     </main>
   );
 }
+
+// Ví dụ State lọc 
+const [selectedCinema, setSelectedCinema] = useState('All');
+const [selectedFormat, setSelectedFormat] = useState('All');
+
+const filteredShowtimes = showtimes.filter(s => 
+  (selectedCinema === 'All' || s.cinemaBrand === selectedCinema) &&
+  (selectedFormat === 'All' || s.format === selectedFormat)
+);
