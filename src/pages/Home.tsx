@@ -83,3 +83,17 @@ export default function Home() {
     </main>
   );
 }
+
+import { AIRecommendation } from '../data';
+
+// Mock dữ liệu AI trả về khi người dùng tìm kiếm câu hỏi tự nhiên
+const mockAIResults: AIRecommendation[] = [
+  {
+    movieId: 'm1',
+    title: 'Kẻ Trộm Mặt Trăng 4',
+    rating: 8.4,
+    matchReason: ['Nội dung gia đình hài hước', 'Không có yếu tố bạo lực'],
+    posterUrl: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=500'
+  },
+  // ... 2 phim tiếp theo
+];
