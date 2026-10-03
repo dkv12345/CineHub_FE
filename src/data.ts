@@ -70,3 +70,11 @@ export const seedReviews = [
   { name: "Quốc Bảo", stars: 4, text: "Kịch bản chặt, diễn xuất tốt. Đoạn giữa hơi chậm nhưng bù lại phần cuối rất cuốn.", when: "4 ngày trước" },
   { name: "Thu Hà", stars: 4, text: "Nhạc phim hay, đặt ghế VIP hàng giữa xem rất đã. Sẽ rủ bạn đi lần nữa.", when: "1 tuần trước" },
 ];
+
+export interface AIRecommendation {
+  movieId: string;
+  title: string;
+  rating: number;
+  matchReason: string[]; // Ví dụ: ["Nội dung hài hước", "Định dạng IMAX 3D"]
+  posterUrl?: string;    // Bổ sung thêm ảnh poster để render card đẹp hơn
+}
