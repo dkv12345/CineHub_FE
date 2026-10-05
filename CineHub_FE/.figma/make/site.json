@@ -1,0 +1,12 @@
+{
+  "description": "Streamline your movie ticketing experience with an intuitive UI for browsing films, selecting seats, and secure checkout, perfect for cinema enthusiasts.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  },
+  "language": "vi",
+  "title": "CineHub - Đặt vé xem phim"
+}
