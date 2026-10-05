@@ -3,16 +3,17 @@ import type { ReactNode } from "react";
 import { combos, dayInfo, PRICE } from "./data";
 
 export type User = { name: string; email: string } | null;
+export type SeatZone = "normal" | "vip" | "sweetbox";
 export type Booking = {
   movieId: number | null; cinema: string; format: string; time: string; dateLabel: string;
-  seats: string[]; combos: Record<string, number>; expiresAt: number | null;
+  seats: string[]; seatTypes: Record<string, SeatZone>; combos: Record<string, number>; expiresAt: number | null;
 };
 export type Order = {
   code: string; movieId: number; cinema: string; format: string; time: string; dateLabel: string;
   seats: string[]; items: { name: string; qty: number }[]; total: number; method: string; status: "upcoming" | "past";
 };
 
-const empty: Booking = { movieId: null, cinema: "", format: "", time: "", dateLabel: "", seats: [], combos: {}, expiresAt: null };
+const empty: Booking = { movieId: null, cinema: "", format: "", time: "", dateLabel: "", seats: [], seatTypes: {}, combos: {}, expiresAt: null };
 
 const seedOrders: Order[] = [
   { code: "CH-0930-7K2MQ", movieId: 2, cinema: "CGV Vincom Landmark 81", format: "2D", time: "19:45", dateLabel: dayInfo(2).label, seats: ["E7", "E8"], items: [{ name: "Combo Đôi", qty: 1 }], total: 309000, method: "VNPay", status: "upcoming" },
@@ -20,8 +21,12 @@ const seedOrders: Order[] = [
   { code: "CH-0911-9LQ4V", movieId: 4, cinema: "CGV Aeon Tân Phú", format: "2D", time: "16:20", dateLabel: dayInfo(-18).label, seats: ["C5", "C6"], items: [{ name: "Combo Solo", qty: 1 }], total: 259000, method: "VNPay", status: "past" },
 ];
 
-export const seatPrice = (seat: string) => (seat.charCodeAt(0) - 65 >= 5 ? PRICE.vip : PRICE.normal);
-export const ticketsTotal = (b: Booking) => b.seats.reduce((s, x) => s + seatPrice(x), 0);
+export const seatTypeFor = (seat: string, zone?: SeatZone) => zone ?? (seat === "E7" || seat === "E8" ? "sweetbox" : seat.charCodeAt(0) - 65 >= 5 ? "vip" : "normal");
+export const seatPrice = (seat: string, zone?: SeatZone) => {
+  const type = seatTypeFor(seat, zone);
+  return type === "sweetbox" ? PRICE.sweetbox : type === "vip" ? PRICE.vip : PRICE.normal;
+};
+export const ticketsTotal = (b: Booking) => b.seats.reduce((s, x) => s + seatPrice(x, b.seatTypes[x]), 0);
 export const combosTotal = (b: Booking) => combos.reduce((s, c) => s + (b.combos[c.id] || 0) * c.price, 0);
 
 type Ctx = {
@@ -29,6 +34,8 @@ type Ctx = {
   booking: Booking; patch: (p: Partial<Booking>) => void; startBooking: (p: Partial<Booking>) => void; reset: () => void;
   orders: Order[]; lastOrder: Order | null; place: (method: string) => Order;
   notified: number[]; toggleNotify: (id: number) => void;
+  collections: number[]; toggleCollection: (id: number) => void;
+  recentMovies: number[]; watchProgress: Record<number, number>; trackMovie: (id: number, progress?: number) => void;
 };
 const C = createContext<Ctx>(null as unknown as Ctx);
 export const useStore = () => useContext(C);
@@ -39,6 +46,22 @@ export function Provider({ children }: { children: ReactNode }) {
   const [orders, setOrders] = useState<Order[]>(seedOrders);
   const [lastOrder, setLast] = useState<Order | null>(null);
   const [notified, setNotified] = useState<number[]>([]);
+  const [collections, setCollections] = useState<number[]>(() => {
+    try { return JSON.parse(localStorage.getItem("cinehub:collection") || "[]") as number[]; }
+    catch { return []; }
+  });
+  const [recentMovies, setRecentMovies] = useState<number[]>([]);
+  const [watchProgress, setWatchProgress] = useState<Record<number, number>>({});
+
+  const toggleCollection = (id: number) => setCollections((items) => {
+    const next = items.includes(id) ? items.filter((item) => item !== id) : [id, ...items];
+    localStorage.setItem("cinehub:collection", JSON.stringify(next));
+    return next;
+  });
+  const trackMovie = (id: number, progress = 8) => {
+    setRecentMovies((items) => [id, ...items.filter((item) => item !== id)].slice(0, 10));
+    setWatchProgress((items) => ({ ...items, [id]: Math.max(items[id] || 0, progress) }));
+  };
 
   const value: Ctx = {
     user, login: setUser, logout: () => setUser(null),
@@ -61,6 +84,7 @@ export function Provider({ children }: { children: ReactNode }) {
       return o;
     },
     notified, toggleNotify: (id) => setNotified((n) => (n.includes(id) ? n.filter((x) => x !== id) : [...n, id])),
+    collections, toggleCollection, recentMovies, watchProgress, trackMovie,
   };
   return <C.Provider value={value}>{children}</C.Provider>;
 }

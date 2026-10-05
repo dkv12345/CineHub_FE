@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { combos, fmt, movies } from "../data";
 import { go } from "../router";
-import { combosTotal, seatPrice, ticketsTotal, useStore } from "../store";
+import { combosTotal, seatPrice, seatTypeFor, ticketsTotal, useStore } from "../store";
 import { btnPrimary, HoldTimer, Icon, Steps } from "../components/ui";
 
 const methods = [
@@ -29,23 +29,23 @@ export default function Checkout() {
         <h1 className="text-3xl font-extrabold tracking-tight">Thanh toán</h1>
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_380px]">
-          <section className="rounded-2xl border border-white/8 bg-[#13151a] p-6">
+          <section className="glass-panel rounded-3xl p-6">
             <h2 className="text-lg font-extrabold">Thông tin đơn hàng</h2>
             <dl className="mt-4 divide-y divide-white/8">
               <div className={row}><dt className="text-white/40">Phim</dt><dd className="text-right font-bold">{m.title} ({m.age})</dd></div>
               <div className={row}><dt className="text-white/40">Suất chiếu</dt><dd className="text-right font-bold">{booking.time} · {booking.dateLabel} · {booking.format}</dd></div>
               <div className={row}><dt className="text-white/40">Rạp</dt><dd className="text-right font-bold">{booking.cinema}</dd></div>
-              <div className={row}><dt className="text-white/40">Mã ghế</dt><dd className="text-right font-bold text-[#f5b50a]">{booking.seats.map((s) => `${s}${seatPrice(s) > 90000 ? " (VIP)" : ""}`).join(", ")}</dd></div>
+              <div className={row}><dt className="text-white/40">Mã ghế</dt><dd className="text-right font-bold text-[#f5b50a]">{booking.seats.map((s) => `${s} (${seatTypeFor(s, booking.seatTypes[s]) === "sweetbox" ? "Sweetbox" : seatTypeFor(s, booking.seatTypes[s]) === "vip" ? "VIP" : "Thường"} · ${fmt(seatPrice(s, booking.seatTypes[s]))})`).join(", ")}</dd></div>
               <div className={row}><dt className="text-white/40">Bắp nước</dt><dd className="text-right font-bold">{items.length ? items.map((c) => <div key={c.id}>{booking.combos[c.id]} × {c.name}</div>) : <span className="font-normal text-white/35">Không có</span>}</dd></div>
             </dl>
           </section>
 
-          <aside className="h-fit rounded-2xl border border-white/8 bg-[#17191f] p-6 lg:sticky lg:top-36">
+          <aside className="glass-panel h-fit rounded-3xl p-6 lg:sticky lg:top-36">
             <fieldset>
               <legend className="text-lg font-extrabold">Phương thức thanh toán</legend>
               <div className="mt-4 space-y-3">
                 {methods.map((x) => (
-                  <label key={x.id} className={`flex cursor-pointer items-center gap-4 rounded-xl border p-4 transition ${method === x.id ? "border-[#e50914] bg-[#e50914]/5" : "border-white/8 hover:border-white/20"}`}>
+                  <label key={x.id} className={`glass-card flex cursor-pointer items-center gap-4 rounded-2xl p-4 ${method === x.id ? "glass-selected" : ""}`}>
                     <input type="radio" name="method" value={x.id} checked={method === x.id} onChange={() => setMethod(x.id)} className="h-4 w-4 accent-[#e50914]" />
                     <span className={`grid h-9 w-11 place-items-center rounded-md text-xs font-black ${x.badge}`}>{x.mark}</span>
                     <span><b className="block text-sm">{x.id}</b><small className="mt-0.5 block text-[11px] leading-4 text-white/35">{x.desc}</small></span>

@@ -27,7 +27,7 @@ function TicketCard({ o, onQR }: { o: Order; onQR: () => void }) {
   const m = movies.find((v) => v.id === o.movieId)!;
   const past = o.status === "past";
   return (
-    <li className={`flex gap-5 rounded-2xl border border-white/8 bg-[#13151a] p-4 sm:p-5 ${past ? "opacity-70" : ""}`}>
+    <li className={`glass-card flex gap-5 rounded-2xl p-4 sm:p-5 ${past ? "opacity-70" : ""}`}>
       <img src={m.poster} alt={`Poster ${m.title}`} className="h-36 w-24 shrink-0 rounded-lg object-cover" />
       <div className="min-w-0 flex-1">
         <h2 className="truncate text-lg font-extrabold">{m.title}</h2>

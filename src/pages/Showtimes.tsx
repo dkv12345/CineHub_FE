@@ -5,19 +5,21 @@ import { useStore } from "../store";
 import { Icon } from "../components/ui";
 
 const days = Array.from({ length: 7 }, (_, i) => dayInfo(i));
-const chip = (on: boolean) => `rounded-full border px-4 py-2 text-xs font-bold transition ${on ? "border-[#e50914] bg-[#e50914]" : "border-white/12 bg-white/[.03] text-white/60 hover:border-white/30"}`;
+const chip = (on: boolean) => `rounded-full border px-4 py-2 text-xs font-bold transition ${on ? "film-accent-bg film-accent-border text-white" : "border-white/12 bg-white/[.03] text-white/60 hover:border-white/30"}`;
 
-export default function Showtimes({ movieId }: { movieId: number | null }) {
-  const { user, startBooking } = useStore();
-  const [day, setDay] = useState(0);
+export default function Showtimes({ movieId, initialDay = 0, initialCinema = null }: { movieId: number | null; initialDay?: number; initialCinema?: string | null }) {
+  const { user, startBooking, trackMovie } = useStore();
+  const [day, setDay] = useState(Math.min(6, Math.max(0, initialDay)));
   const [brand, setBrand] = useState("Tất cả");
   const [fmtF, setFmtF] = useState("Tất cả");
   const [mid, setMid] = useState<number | null>(movieId);
+  const [cinemaId, setCinemaId] = useState(initialCinema || "Tất cả");
 
   const now = movies.filter((m) => m.status === "now");
   const shown = now.filter((m) => mid === null || m.id === mid);
 
   const pick = (m: (typeof now)[number], c: (typeof cinemas)[number], time: string, format: string) => {
+    trackMovie(m.id);
     startBooking({ movieId: m.id, cinema: c.name, format, time, dateLabel: days[day].label });
     go(user ? "/booking/seats" : `/login?next=${encodeURIComponent("/booking/seats")}`);
   };
@@ -29,30 +31,35 @@ export default function Showtimes({ movieId }: { movieId: number | null }) {
 
       <div className="scrollbar-hide mt-7 flex gap-2 overflow-x-auto pb-2" role="tablist" aria-label="Chọn ngày">
         {days.map((d, i) => (
-          <button key={d.offset} role="tab" aria-selected={day === i} onClick={() => setDay(i)} className={`min-w-[84px] rounded-lg border px-4 py-3 text-center transition ${day === i ? "border-[#e50914] bg-[#e50914]" : "border-white/10 bg-white/[.025] text-white/55 hover:border-white/25"}`}>
+          <button key={d.offset} role="tab" aria-selected={day === i} onClick={() => setDay(i)} className={`min-w-[84px] rounded-xl border px-4 py-3 text-center backdrop-blur-xl transition ${day === i ? "film-accent-bg film-accent-border text-white" : "border-white/15 bg-white/[.05] text-white/65 hover:border-white/30 hover:bg-white/[.09]"}`}>
             <small className="block text-[11px] font-bold">{d.short}</small><b className="mt-1 block text-lg">{d.num}</b>
           </button>
         ))}
       </div>
 
-      <div className="mt-6 grid gap-5 rounded-xl border border-white/8 bg-[#111319] p-5 md:grid-cols-3">
+      <div className="glass-panel mt-6 grid gap-5 rounded-2xl p-5 md:grid-cols-2 xl:grid-cols-4">
         <div><span className="mb-2 block text-xs font-semibold text-white/40">Phim</span>
-          <select value={mid ?? ""} onChange={(e) => setMid(e.target.value ? Number(e.target.value) : null)} className="w-full rounded-lg border border-white/10 bg-[#0e1014] px-3 py-2.5 text-sm outline-none focus:border-[#e50914]">
+          <select value={mid ?? ""} onChange={(e) => setMid(e.target.value ? Number(e.target.value) : null)} className="glass-control w-full rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#e50914]">
             <option value="">Tất cả phim</option>{now.map((m) => <option key={m.id} value={m.id}>{m.title}</option>)}
           </select></div>
         <div><span className="mb-2 block text-xs font-semibold text-white/40">Rạp</span>
-          <div className="flex flex-wrap gap-2">{["Tất cả", "CGV", "Lotte"].map((b) => <button key={b} onClick={() => setBrand(b)} aria-pressed={brand === b} className={chip(brand === b)}>{b}</button>)}</div></div>
+          <div className="flex flex-wrap gap-2">{["Tất cả", "CGV", "Lotte", "BHD"].map((b) => <button key={b} onClick={() => { setBrand(b); setCinemaId("Tất cả"); }} aria-pressed={brand === b} className={chip(brand === b)}>{b}</button>)}</div></div>
         <div><span className="mb-2 block text-xs font-semibold text-white/40">Định dạng</span>
-          <div className="flex flex-wrap gap-2">{["Tất cả", "2D", "3D"].map((f) => <button key={f} onClick={() => setFmtF(f)} aria-pressed={fmtF === f} className={chip(fmtF === f)}>{f}</button>)}</div></div>
+          <div className="flex flex-wrap gap-2">{["Tất cả", "2D", "3D", "IMAX"].map((f) => <button key={f} onClick={() => setFmtF(f)} aria-pressed={fmtF === f} className={chip(fmtF === f)}>{f}</button>)}</div></div>
+        <label className="text-xs font-semibold text-white/40">Cụm rạp
+          <select value={cinemaId} onChange={(e) => { setCinemaId(e.target.value); setBrand("Tất cả"); }} className="glass-control mt-2 w-full rounded-xl px-3 py-2.5 text-sm text-white outline-none focus:border-[#e50914]">
+            <option value="Tất cả">Tất cả rạp</option>{cinemas.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        </label>
       </div>
 
       <div className="mt-8 space-y-6">
         {cinemas.map((c, ci) => {
-          if (brand !== "Tất cả" && c.brand !== brand) return null;
+          if ((brand !== "Tất cả" && c.brand !== brand) || (cinemaId !== "Tất cả" && c.id !== cinemaId)) return null;
           const rows = shown.map((m) => ({ m, shows: getShows(m.id, ci, day).filter((s) => fmtF === "Tất cả" || s.format === fmtF) })).filter((r) => r.shows.length);
           if (!rows.length) return null;
           return (
-            <section key={c.id} className="overflow-hidden rounded-xl border border-white/8 bg-[#13151a]">
+            <section key={c.id} className="glass-panel overflow-hidden rounded-2xl">
               <header className="flex items-center gap-4 border-b border-white/8 px-5 py-4">
                 <span className="text-[#e50914]"><Icon name="pin" size={20} /></span>
                 <div><h2 className="font-extrabold">{c.name}</h2><p className="text-xs text-white/35">{c.area} · cách bạn {c.dist}</p></div>
@@ -75,7 +82,7 @@ export default function Showtimes({ movieId }: { movieId: number | null }) {
             </section>
           );
         })}
-        {cinemas.every((c, ci) => (brand !== "Tất cả" && c.brand !== brand) || !shown.some((m) => getShows(m.id, ci, day).some((s) => fmtF === "Tất cả" || s.format === fmtF))) && (
+        {cinemas.every((c, ci) => (brand !== "Tất cả" && c.brand !== brand) || (cinemaId !== "Tất cả" && c.id !== cinemaId) || !shown.some((m) => getShows(m.id, ci, day).some((s) => fmtF === "Tất cả" || s.format === fmtF))) && (
           <p className="rounded-xl border border-dashed border-white/15 px-6 py-14 text-center text-sm text-white/45">Không có suất chiếu phù hợp. Hãy thử đổi ngày, rạp hoặc định dạng.</p>
         )}
       </div>

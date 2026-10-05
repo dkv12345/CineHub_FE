@@ -13,7 +13,7 @@ export function Success() {
         <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-[#23ad68]/15 text-[#46d38a]"><Icon name="check" size={32} /></div>
         <h1 className="mt-6 text-3xl font-extrabold">Cảm ơn bạn đã đặt vé!</h1>
         <p className="mt-2 text-sm text-white/45">Vé đã được gửi tới email của bạn và lưu trong mục Vé của tôi.</p>
-        <div className="mt-8 rounded-2xl border border-white/8 bg-[#15171c] p-6 text-left">
+        <div className="glass-panel mt-8 rounded-3xl p-6 text-left">
           <small className="text-xs text-white/40">Mã đơn hàng</small>
           <b className="mt-1 block text-2xl tracking-wider text-[#f5b50a]">{o.code}</b>
           <dl className="mt-5 space-y-3 border-t border-white/8 pt-5 text-sm">

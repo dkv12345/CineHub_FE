@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { go, Link } from "../router";
 import { useStore } from "../store";
-import { btnPrimary, Field } from "../components/ui";
+import { btnPrimary, Field, Modal } from "../components/ui";
 import { movies } from "../data";
 
 const emailOk = (s: string) => /^\S+@\S+\.\S+$/.test(s);
@@ -11,6 +11,10 @@ export default function Auth({ mode, next }: { mode: "login" | "register"; next:
   const isLogin = mode === "login";
   const [f, setF] = useState({ name: "", email: "", pw: "", pw2: "" });
   const [err, setErr] = useState<Record<string, string>>({});
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotError, setForgotError] = useState("");
+  const [resetSent, setResetSent] = useState(false);
   const set = (k: keyof typeof f) => (v: string) => setF((x) => ({ ...x, [k]: v }));
 
   const submit = (e: React.FormEvent) => {
@@ -27,9 +31,16 @@ export default function Auth({ mode, next }: { mode: "login" | "register"; next:
     go(next);
   };
 
+  const submitReset = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!emailOk(forgotEmail)) return setForgotError("Nhập email đúng định dạng để tiếp tục.");
+    setForgotError("");
+    setResetSent(true);
+  };
+
   return (
     <main className="mx-auto grid min-h-[calc(100vh-74px)] max-w-[1400px] lg:grid-cols-2">
-      <section className="relative hidden overflow-hidden lg:block">
+      <section className="dark-film-content relative hidden overflow-hidden lg:block">
         <img src={movies[0].backdrop} alt="" className="absolute inset-0 h-full w-full object-cover opacity-70" />
         <div className="absolute inset-0 bg-[linear-gradient(0deg,#0b0d11_5%,transparent_70%),linear-gradient(90deg,transparent_60%,#0b0d11)]" />
         <div className="absolute bottom-16 left-12 max-w-[420px]">
@@ -38,7 +49,7 @@ export default function Auth({ mode, next }: { mode: "login" | "register"; next:
         </div>
       </section>
       <section className="grid place-items-center px-5 py-12">
-        <form onSubmit={submit} noValidate className="w-full max-w-[420px]">
+        <form onSubmit={submit} noValidate className="glass-panel w-full max-w-[420px] rounded-3xl p-7 sm:p-9">
           <h1 className="text-3xl font-extrabold tracking-tight">{isLogin ? "Đăng nhập" : "Tạo tài khoản"}</h1>
           <p className="mt-2 text-sm text-white/40">
             {isLogin ? "Chưa có tài khoản? " : "Đã có tài khoản? "}
@@ -50,10 +61,29 @@ export default function Auth({ mode, next }: { mode: "login" | "register"; next:
             <Field label="Mật khẩu" type="password" value={f.pw} onChange={set("pw")} error={err.pw} placeholder="Ít nhất 6 ký tự" autoComplete={isLogin ? "current-password" : "new-password"} />
             {!isLogin && <Field label="Xác nhận mật khẩu" type="password" value={f.pw2} onChange={set("pw2")} error={err.pw2} placeholder="Nhập lại mật khẩu" autoComplete="new-password" />}
           </div>
-          {isLogin && <div className="mt-3 text-right"><a href="#/login" className="text-xs font-semibold text-white/40 hover:text-white">Quên mật khẩu?</a></div>}
+          {isLogin && <div className="mt-3 text-right"><button type="button" onClick={() => { setForgotOpen(true); setForgotEmail(f.email); setResetSent(false); }} className="text-xs font-semibold text-white/40 hover:text-white">Quên mật khẩu?</button></div>}
           <button type="submit" className={`${btnPrimary} mt-7 w-full`}>{isLogin ? "Đăng nhập" : "Đăng ký"}</button>
         </form>
       </section>
+      {forgotOpen && (
+        <Modal onClose={() => setForgotOpen(false)}>
+          {resetSent ? (
+            <div className="pt-3 text-center">
+              <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-[#46d38a]/15 text-[#46d38a]">✓</div>
+              <h2 className="mt-4 text-xl font-extrabold">Kiểm tra hộp thư của bạn</h2>
+              <p className="mt-2 text-sm leading-6 text-white/50">Nếu tài khoản khớp với email này, hướng dẫn đặt lại mật khẩu sẽ được gửi đến bạn.</p>
+              <button onClick={() => setForgotOpen(false)} className={`${btnPrimary} mt-6 w-full`}>Đã hiểu</button>
+            </div>
+          ) : (
+            <form onSubmit={submitReset}>
+              <h2 className="pr-8 text-xl font-extrabold">Đặt lại mật khẩu</h2>
+              <p className="mt-2 text-sm leading-6 text-white/45">Nhập email đã đăng ký để nhận hướng dẫn khôi phục tài khoản.</p>
+              <div className="mt-5"><Field label="Email" type="email" value={forgotEmail} onChange={setForgotEmail} error={forgotError} placeholder="ten@email.com" autoComplete="email" /></div>
+              <button type="submit" className={`${btnPrimary} mt-5 w-full`}>Gửi hướng dẫn</button>
+            </form>
+          )}
+        </Modal>
+      )}
     </main>
   );
 }

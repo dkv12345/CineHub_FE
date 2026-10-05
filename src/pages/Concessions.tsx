@@ -21,7 +21,7 @@ export default function Concessions() {
 
         <ul className="mt-8 grid gap-4 sm:grid-cols-2">
           {combos.map((c) => (
-            <li key={c.id} className={`flex items-center gap-4 rounded-xl border p-4 transition ${qty(c.id) ? "border-[#e50914]/60 bg-[#e50914]/5" : "border-white/8 bg-[#13151a]"}`}>
+            <li key={c.id} className={`glass-card flex items-center gap-4 rounded-2xl p-4 ${qty(c.id) ? "glass-selected" : ""}`}>
               <span className="grid h-24 w-24 shrink-0 place-items-center rounded-lg bg-[radial-gradient(circle_at_30%_20%,#3a2a12,#1a1610)] text-5xl" aria-hidden="true">{c.emoji}</span>
               <div className="min-w-0 flex-1">
                 <h2 className="font-extrabold">{c.name}</h2>
@@ -41,7 +41,7 @@ export default function Concessions() {
         <p className="mt-6 text-xs text-white/30">{m.title} · {booking.cinema} · {booking.time}</p>
       </div>
 
-      <div className="sticky bottom-0 z-30 border-t border-white/10 bg-[#0e1014]/95 backdrop-blur-xl">
+      <div className="glass-panel sticky bottom-0 z-30 border-t border-white/15">
         <div className="mx-auto flex max-w-[1100px] flex-wrap items-center gap-x-8 gap-y-3 px-5 py-4 md:px-9">
           <div className="flex-1 text-xs text-white/45"><div>Vé ({booking.seats.length}): <b className="text-white">{fmt(tickets)}</b></div><div className="mt-1">Bắp nước: <b className="text-white">{fmt(food)}</b></div></div>
           <div className="text-right"><small className="text-xs text-white/40">Tổng tiền</small><b className="block text-xl tabular-nums">{fmt(tickets + food)}</b></div>
