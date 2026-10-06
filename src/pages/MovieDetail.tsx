@@ -4,9 +4,10 @@ import { go } from "../router";
 import { useStore } from "../store";
 import { btnGhost, btnPrimary, Icon, Modal, Stars } from "../components/ui";
 import { Link } from "../router";
+import { getYouTubeEmbedUrl } from "../services/sessionsApi";
 
-export default function MovieDetail({ id, autoPlayTrailer = false }: { id: number; autoPlayTrailer?: boolean }) {
-  const m = movies.find((x) => x.id === id);
+export default function MovieDetail({ id, autoPlayTrailer = false }: { id: number | string; autoPlayTrailer?: boolean }) {
+  const m = movies.find((x) => String(x.id) === String(id));
   const { user, notified, toggleNotify, trackMovie } = useStore();
   const [tab, setTab] = useState<"info" | "reviews">("info");
   const [trailer, setTrailer] = useState(autoPlayTrailer);
@@ -14,7 +15,7 @@ export default function MovieDetail({ id, autoPlayTrailer = false }: { id: numbe
   const [stars, setStars] = useState(0);
   const [text, setText] = useState("");
   const [msg, setMsg] = useState("");
-  useEffect(() => { trackMovie(id, 12); }, [id]);
+  useEffect(() => { trackMovie(Number(id) || 1, 12); }, [id]);
 
   if (!m) return <main className="grid min-h-[60vh] place-items-center text-white/50">Không tìm thấy phim. <Link to="/home" className="ml-2 font-bold text-[#ff4d57]">Về trang chủ</Link></main>;
   const soon = m.status === "soon";
@@ -134,11 +135,22 @@ export default function MovieDetail({ id, autoPlayTrailer = false }: { id: numbe
         <Modal wide onClose={() => setTrailer(false)}>
           <h2 className="mb-4 pr-8 text-lg font-extrabold">Trailer · {m.title}</h2>
           <div className="relative aspect-video overflow-hidden rounded-xl bg-black">
-            <img src={m.backdrop} alt="" className="h-full w-full object-cover opacity-60" />
-            <div className="absolute inset-0 grid place-items-center"><span className="grid h-20 w-20 place-items-center rounded-full bg-[#e50914] pl-1"><Icon name="play" size={32} /></span></div>
-            <div className="absolute inset-x-0 bottom-0 h-1.5 bg-white/15"><div className="h-full w-1/3 bg-[#e50914]" /></div>
+            {m.trailer && getYouTubeEmbedUrl(m.trailer) ? (
+              <iframe
+                src={getYouTubeEmbedUrl(m.trailer)!}
+                title={`Trailer ${m.title}`}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="h-full w-full border-0"
+              />
+            ) : (
+              <>
+                <img src={m.backdrop} alt="" className="h-full w-full object-cover opacity-60" />
+                <div className="absolute inset-0 grid place-items-center"><span className="grid h-20 w-20 place-items-center rounded-full bg-[#e50914] pl-1"><Icon name="play" size={32} /></span></div>
+                <div className="absolute inset-x-0 bottom-0 h-1.5 bg-white/15"><div className="h-full w-1/3 bg-[#e50914]" /></div>
+              </>
+            )}
           </div>
-          <p className="mt-3 text-xs text-white/35">Khung video mẫu. Thay bằng link YouTube hoặc file video của phim khi làm bản thật.</p>
         </Modal>
       )}
     </main>

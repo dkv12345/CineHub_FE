@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { avatar, movies } from "../data";
-import type { Movie } from "../data";
+import type { Movie, AIRecommendation } from "../data";
 import { go, Link } from "../router";
 import { useStore } from "../store";
 import { Icon } from "./ui";
@@ -119,19 +119,23 @@ export function Chatbot({ lift }: { lift?: boolean }) {
   const [text, setText] = useState("");
   const [msgs, setMsgs] = useState<Msg[]>([{ from: "bot", text: "Xin chào, mình là CineBot. Mình có thể giúp gì cho bạn?" }]);
   const [typing, setTyping] = useState(false);
+  const [aiRecommendations, setAiRecommendations] = useState<AIRecommendation[]>([]);
   const end = useRef<HTMLDivElement>(null);
+
   useEffect(() => { end.current?.scrollIntoView({ block: "end" }); }, [msgs, open]);
   useEffect(() => {
     const reveal = () => setOpen(true);
     window.addEventListener("cinehub:open-chat", reveal);
     return () => window.removeEventListener("cinehub:open-chat", reveal);
   }, []);
+
   const send = (t: string) => {
     if (!t.trim() || typing) return;
     setMsgs((m) => [...m, { from: "me", text: t }]); setText("");
     setTyping(true);
     setTimeout(() => { setMsgs((m) => [...m, { from: "bot", ...answer(t) }]); setTyping(false); }, 600);
   };
+
   return (
     <div className={`fixed right-5 z-[60] ${lift ? "bottom-28" : "bottom-5"}`}>
       {open && (
@@ -166,8 +170,3 @@ export function Chatbot({ lift }: { lift?: boolean }) {
     </div>
   );
 }
-
-import { AIRecommendation } from '../data';
-
-// State lưu danh sách gợi ý trong khung chat
-const [aiRecommendations, setAiRecommendations] = useState([]);

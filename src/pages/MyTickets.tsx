@@ -24,15 +24,33 @@ function QR({ code }: { code: string }) {
 }
 
 function TicketCard({ o, onQR }: { o: Order; onQR: () => void }) {
-  const m = movies.find((v) => v.id === o.movieId)!;
+  const m = movies.find((v) => String(v.id) === String(o.movieId)) || {
+    id: o.movieId,
+    title: o.movieTitle || "Phim đã đặt",
+    poster: o.moviePoster || "",
+  };
   const past = o.status === "past";
   return (
     <li className={`glass-card flex gap-5 rounded-2xl p-4 sm:p-5 ${past ? "opacity-70" : ""}`}>
-      <img src={m.poster} alt={`Poster ${m.title}`} className="h-36 w-24 shrink-0 rounded-lg object-cover" />
+      {m.poster && <img src={m.poster} alt={`Poster ${m.title}`} className="h-36 w-24 shrink-0 rounded-lg object-cover" />}
       <div className="min-w-0 flex-1">
-        <h2 className="truncate text-lg font-extrabold">{m.title}</h2>
-        <p className="mt-1 flex items-center gap-1.5 text-sm text-white/60"><Icon name="clock" size={15} /> {o.time} · {o.dateLabel} · {o.format}</p>
-        <p className="mt-1 flex items-center gap-1.5 truncate text-sm text-white/60"><Icon name="pin" size={15} /> {o.cinema}</p>
+        <div className="flex flex-wrap items-center gap-2">
+          <h2 className="truncate text-lg font-extrabold">{m.title}</h2>
+          {o.screenName && (
+            <span className="rounded bg-white/10 px-2 py-0.5 text-[11px] font-bold text-[#f5b50a]">
+              {o.screenName}
+            </span>
+          )}
+        </div>
+        <p className="mt-1 flex items-center gap-1.5 text-sm text-white/60">
+          <Icon name="clock" size={15} /> {o.time} · {o.dateLabel} · <span className="text-[#f5b50a]">{o.format}</span>
+        </p>
+        <p className="mt-1 flex items-center gap-1.5 truncate text-sm text-white/60">
+          <Icon name="pin" size={15} /> {o.cinema} {o.cinemaCode ? `(${o.cinemaCode})` : ""}
+        </p>
+        {o.cinemaAddress && (
+          <p className="mt-0.5 truncate text-xs text-white/40">{o.cinemaAddress}</p>
+        )}
         <p className="mt-2 text-sm">Ghế: <b className="text-[#f5b50a]">{o.seats.join(", ")}</b></p>
         <div className="mt-3 flex items-center justify-between gap-3">
           <small className="truncate text-white/30">{o.code}</small>

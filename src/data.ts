@@ -12,10 +12,11 @@ const ids = {
 export const avatar = U(ids.portrait, 200);
 
 export type Movie = {
-  id: number; title: string; genre: string; duration: string; director: string; cast: string;
+  id: number | string; title: string; genre: string; duration: string; director: string; cast: string;
   age: string; rating: number; votes: number; poster: string; backdrop: string;
   status: "now" | "soon"; release: string; synopsis: string;
   themeKey?: MovieThemeKey; country?: string; studio?: string;
+  trailer?: string; views?: number; slug?: string; startDate?: string; endDate?: string;
 };
 
 export type MovieThemeKey = "space" | "scarlet" | "ocean" | "noir" | "earth" | "ghibli" | "conan" | "doraemon" | "western" | "china" | "korea";
@@ -35,6 +36,52 @@ export const movieThemes: Record<MovieThemeKey, { accent: string; highlight: str
 };
 
 export const movies: Movie[] = [
+  {
+    id: "a0cd6a78-f461-4264-9e7d-ee220b3bde9d",
+    title: "Quyết Cua Anh Này",
+    genre: "Hài hước, Tình cảm",
+    duration: "1h 55m",
+    director: "Henry Cole",
+    cast: "Henry, Sophie, Liam",
+    age: "T13",
+    rating: 8.6,
+    votes: 20,
+    views: 1420,
+    poster: "https://cdn.galaxycine.vn/media/2026/9/24/henrys-first-date-4_1790237311455.jpg",
+    backdrop: "https://cdn.galaxycine.vn/media/2026/9/24/henrys-first-date-1_1790237320350.jpg",
+    status: "now",
+    release: "01/10/2026",
+    startDate: "2026-10-01 00:00:00",
+    endDate: "2026-11-27 00:00:00",
+    slug: "henrys-first-date",
+    trailer: "https://www.youtube.com/watch?v=NSrioJtAiEU",
+    themeKey: "western",
+    country: "Việt Nam",
+    synopsis: "Một câu chuyện tình yêu ngọt ngào và dở khóc dở cười xoay quanh kế hoạch chinh phục người trong mộng bất chấp mọi tình huống trớ trêu."
+  },
+  {
+    id: "1e403224-98da-4a69-9d21-f6d034ee90e1",
+    title: "Trại Buôn Người",
+    genre: "Hành động, Giật gân, Tội phạm",
+    duration: "2h 15m",
+    director: "Mark Evans",
+    cast: "Dương Tử, Kim Seon-ho, Michael Vu",
+    age: "T18",
+    rating: 9.3,
+    votes: 379,
+    views: 4520,
+    poster: "https://cdn.galaxycine.vn/media/2026/9/22/trai-buon-nguoi-500_1790067332155.jpg",
+    backdrop: "https://cdn.galaxycine.vn/media/2026/9/22/trai-buon-nguoi-750_1790067333205.jpg",
+    status: "now",
+    release: "24/09/2026",
+    startDate: "2026-09-24 00:00:00",
+    endDate: "2026-11-29 00:00:00",
+    slug: "trai-buon-nguoi",
+    trailer: "https://www.youtube.com/watch?v=NzOUpcA3fSg",
+    themeKey: "scarlet",
+    country: "Việt Nam",
+    synopsis: "Hành trình thâm nhập và triệt phá đường dây tội phạm quốc tế nguy hiểm nhằm giải cứu các nạn nhân vô tội."
+  },
   { id: 1, title: "Crimson Orbit", genre: "Khoa học viễn tưởng, Giật gân", duration: "2h 18m", director: "Nolan Reyes", cast: "Mara Voss, Ian Cole", age: "T16", rating: 8.7, votes: 1284, poster: U(ids.eclipse), backdrop: U(ids.hero, 1800), status: "now", release: "Đang chiếu", themeKey: "space", country: "Mỹ", synopsis: "Một nhà du hành nhận được tín hiệu từ rìa Hệ Mặt Trời, thứ vốn không bao giờ được phép chạm tới Trái Đất. Cô phải chọn giữa quay về nhà hoặc lần theo tín hiệu vào bóng tối." },
   { id: 2, title: "Red Horizon", genre: "Hành động, Chính kịch", duration: "2h 05m", director: "Elena Marsh", cast: "Jack Doran, Lin Tao", age: "T18", rating: 8.4, votes: 962, poster: U(ids.redEye), backdrop: U(ids.redEye, 1800), status: "now", release: "Đang chiếu", themeKey: "scarlet", country: "Mỹ", synopsis: "Một cựu đặc vụ buộc phải quay lại chiến trường khi người cuối cùng cô tin tưởng bị bắt cóc giữa cuộc đảo chính." },
   { id: 3, title: "Beyond Earth", genre: "Phiêu lưu, Khoa học viễn tưởng", duration: "1h 58m", director: "Sam Okafor", cast: "Ava Lin, Tom Reid", age: "P", rating: 8.1, votes: 730, poster: U(ids.rocket), backdrop: U(ids.rocket, 1800), status: "now", release: "Đang chiếu", themeKey: "ocean", country: "Anh", synopsis: "Một nhóm học sinh trúng chuyến bay thử nghiệm lên quỹ đạo và phát hiện trạm vũ trụ bỏ hoang không hề trống rỗng." },
@@ -62,11 +109,18 @@ export const movies: Movie[] = [
 ];
 
 export const cinemas = [
-  { id: "cgv-l81", brand: "CGV", name: "CGV Vincom Landmark 81", area: "Bình Thạnh", dist: "1,2 km" },
-  { id: "lotte-nz", brand: "Lotte", name: "Lotte Cinema Nowzone", area: "Quận 5", dist: "3,4 km" },
-  { id: "cgv-aeon", brand: "CGV", name: "CGV Aeon Tân Phú", area: "Tân Phú", dist: "7,9 km" },
-  { id: "lotte-gv", brand: "Lotte", name: "Lotte Cinema Gò Vấp", area: "Gò Vấp", dist: "6,1 km" },
-  { id: "bhd-bitexco", brand: "BHD", name: "BHD Star Bitexco", area: "Quận 1", dist: "2,6 km" },
+  { id: "13ca0671-3301-4341-ab39-15893aec02f6", brand: "Galaxy", name: "Galaxy CineO Coop Quang Trung", area: "Gò Vấp · TP.HCM", dist: "2,1 km", code: "0000001005", address: "Tầng 3, TTTM Co.opmart Quang Trung - 304A Quang Trung, Phường Thông Tây Hội, TP.HCM", phone: "1900 2224" },
+  { id: "fb233b0f-edb4-4eb1-ade8-7f8b83ab2457", brand: "Galaxy", name: "Galaxy Cinema Nguyễn Du", area: "Quận 1 · TP.HCM", dist: "1,5 km", code: "1001", address: "116 Nguyễn Du, Phường Bến Thành, TP.HCM", phone: "1900 2224" },
+  { id: "fe18db21-cdee-44ba-90c3-f2e3ac6c8320", brand: "Galaxy", name: "Galaxy Cinema Kinh Dương Vương", area: "Quận 6 · TP.HCM", dist: "4,8 km", code: "1004", address: "718 Bis Kinh Dương Vương, Phường Phú Lâm, TP.HCM", phone: "1900 2224" },
+  { id: "5e0c771c-55b2-431c-a368-b8bd1d815e3d", brand: "Galaxy", name: "Galaxy Cinema Mipec Long Biên", area: "Long Biên · Hà Nội", dist: "Hà Nội", code: "1007", address: "Tầng 6, Mipec Riverside Long Biên - Số 02 Long Biên, Phường Bồ Đề, Hà Nội", phone: "1900 2224" },
+  { id: "3a9fe5b5-0f63-4889-aaae-6c1b76d7050d", brand: "Galaxy", name: "Galaxy Cinema Coop Đà Nẵng", area: "Thanh Khê · Đà Nẵng", dist: "Đà Nẵng", code: "1008", address: "Tầng 3, TTTM Co.opmart Đà Nẵng - 478 Điện Biên Phủ, Phường Thanh Khê, TP. Đà Nẵng", phone: "1900 2224" },
+  { id: "0f95ca57-3707-4e69-bf01-c15993afd3ea", brand: "Galaxy", name: "Galaxy Cinema Sense City Bến Tre", area: "An Hội · Bến Tre", dist: "Bến Tre", code: "1006", address: "Tầng 1, TTTM Sense City Bến Tre - Số 26A Trần Quốc Tuấn, Phường An Hội, Tỉnh Vĩnh Long", phone: "1900 2224" },
+  { id: "0a7ad4dd-1a39-46d7-9ec1-aaaf1d17cb55", brand: "Galaxy", name: "Galaxy Cinema Sense City Cà Mau", area: "Tân Thành · Cà Mau", dist: "Cà Mau", code: "1010", address: "Tầng 2, TTTM Co.opmart Cà Mau - Số 09 Trần Hưng Đạo, Phường Tân Thành, Tỉnh Cà Mau", phone: "1900 2224" },
+  { id: "cgv-l81", brand: "CGV", name: "CGV Vincom Landmark 81", area: "Bình Thạnh · TP.HCM", dist: "1,2 km" },
+  { id: "lotte-nz", brand: "Lotte", name: "Lotte Cinema Nowzone", area: "Quận 5 · TP.HCM", dist: "3,4 km" },
+  { id: "cgv-aeon", brand: "CGV", name: "CGV Aeon Tân Phú", area: "Tân Phú · TP.HCM", dist: "7,9 km" },
+  { id: "lotte-gv", brand: "Lotte", name: "Lotte Cinema Gò Vấp", area: "Gò Vấp · TP.HCM", dist: "6,1 km" },
+  { id: "bhd-bitexco", brand: "BHD", name: "BHD Star Bitexco", area: "Quận 1 · TP.HCM", dist: "2,6 km" },
 ];
 
 export const combos = [

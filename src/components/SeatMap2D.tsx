@@ -20,6 +20,7 @@ export type SeatCell = {
 };
 
 export function layoutForCinema(cinema: string): SeatLayout {
+  if (/galaxy/i.test(cinema)) return { rows: 10, columns: 16, aislesAfter: [4, 12], vipFromRow: 4, sweetbox: { row: 9, from: 6, to: 11 }, style: "Galaxy Cinema · Âm thanh Dolby 7.1 · Sảnh Laser" };
   if (/lotte/i.test(cinema)) return { rows: 9, columns: 15, aislesAfter: [5, 10], vipFromRow: 5, sweetbox: { row: 7, from: 7, to: 10 }, style: "Lotte · 3 khu ghế · lối đi đôi" };
   if (/bhd/i.test(cinema)) return { rows: 8, columns: 18, aislesAfter: [6, 12], vipFromRow: 4, sweetbox: { row: 6, from: 8, to: 11 }, style: "BHD Star · 3 khu ghế · sảnh rộng" };
   return { rows: 10, columns: 16, aislesAfter: [8], vipFromRow: 6, sweetbox: { row: 4, from: 7, to: 10 }, style: "CGV · 2 khu ghế · lối đi trung tâm" };
