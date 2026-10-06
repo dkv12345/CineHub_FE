@@ -5,12 +5,47 @@ import { combos, dayInfo, PRICE } from "./data";
 export type User = { name: string; email: string } | null;
 export type SeatZone = "normal" | "vip" | "sweetbox";
 export type Booking = {
-  movieId: number | null; cinema: string; format: string; time: string; dateLabel: string;
-  seats: string[]; seatTypes: Record<string, SeatZone>; combos: Record<string, number>; expiresAt: number | null;
+  movieId: number | string | null;
+  movieTitle?: string;
+  movieAge?: string;
+  movieDuration?: string | number;
+  moviePoster?: string;
+  cinema: string;
+  cinemaCode?: string;
+  cinemaAddress?: string;
+  cinemaPhone?: string;
+  format: string;
+  caption?: string;
+  version?: string;
+  screenName?: string;
+  sessionId?: string;
+  time: string;
+  dateLabel: string;
+  seats: string[];
+  seatTypes: Record<string, SeatZone>;
+  combos: Record<string, number>;
+  expiresAt: number | null;
 };
 export type Order = {
-  code: string; movieId: number; cinema: string; format: string; time: string; dateLabel: string;
-  seats: string[]; items: { name: string; qty: number }[]; total: number; method: string; status: "upcoming" | "past";
+  code: string;
+  movieId: number | string;
+  movieTitle?: string;
+  moviePoster?: string;
+  cinema: string;
+  cinemaCode?: string;
+  cinemaAddress?: string;
+  cinemaPhone?: string;
+  screenName?: string;
+  format: string;
+  caption?: string;
+  version?: string;
+  time: string;
+  dateLabel: string;
+  seats: string[];
+  items: { name: string; qty: number }[];
+  total: number;
+  method: string;
+  status: "upcoming" | "past";
 };
 
 const empty: Booking = { movieId: null, cinema: "", format: "", time: "", dateLabel: "", seats: [], seatTypes: {}, combos: {}, expiresAt: null };
@@ -33,9 +68,9 @@ type Ctx = {
   user: User; login: (u: NonNullable<User>) => void; logout: () => void;
   booking: Booking; patch: (p: Partial<Booking>) => void; startBooking: (p: Partial<Booking>) => void; reset: () => void;
   orders: Order[]; lastOrder: Order | null; place: (method: string) => Order;
-  notified: number[]; toggleNotify: (id: number) => void;
-  collections: number[]; toggleCollection: (id: number) => void;
-  recentMovies: number[]; watchProgress: Record<number, number>; trackMovie: (id: number, progress?: number) => void;
+  notified: (number | string)[]; toggleNotify: (id: number | string) => void;
+  collections: (number | string)[]; toggleCollection: (id: number | string) => void;
+  recentMovies: (number | string)[]; watchProgress: Record<string | number, number>; trackMovie: (id: number | string, progress?: number) => void;
 };
 const C = createContext<Ctx>(null as unknown as Ctx);
 export const useStore = () => useContext(C);
@@ -45,20 +80,20 @@ export function Provider({ children }: { children: ReactNode }) {
   const [booking, setBooking] = useState<Booking>(empty);
   const [orders, setOrders] = useState<Order[]>(seedOrders);
   const [lastOrder, setLast] = useState<Order | null>(null);
-  const [notified, setNotified] = useState<number[]>([]);
-  const [collections, setCollections] = useState<number[]>(() => {
-    try { return JSON.parse(localStorage.getItem("cinehub:collection") || "[]") as number[]; }
+  const [notified, setNotified] = useState<(number | string)[]>([]);
+  const [collections, setCollections] = useState<(number | string)[]>(() => {
+    try { return JSON.parse(localStorage.getItem("cinehub:collection") || "[]") as (number | string)[]; }
     catch { return []; }
   });
-  const [recentMovies, setRecentMovies] = useState<number[]>([]);
-  const [watchProgress, setWatchProgress] = useState<Record<number, number>>({});
+  const [recentMovies, setRecentMovies] = useState<(number | string)[]>([]);
+  const [watchProgress, setWatchProgress] = useState<Record<string | number, number>>({});
 
-  const toggleCollection = (id: number) => setCollections((items) => {
+  const toggleCollection = (id: number | string) => setCollections((items) => {
     const next = items.includes(id) ? items.filter((item) => item !== id) : [id, ...items];
     localStorage.setItem("cinehub:collection", JSON.stringify(next));
     return next;
   });
-  const trackMovie = (id: number, progress = 8) => {
+  const trackMovie = (id: number | string, progress = 8) => {
     setRecentMovies((items) => [id, ...items.filter((item) => item !== id)].slice(0, 10));
     setWatchProgress((items) => ({ ...items, [id]: Math.max(items[id] || 0, progress) }));
   };
@@ -75,7 +110,19 @@ export function Provider({ children }: { children: ReactNode }) {
       const d = new Date();
       const o: Order = {
         code: `CH-${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}-${rnd}`,
-        movieId: booking.movieId!, cinema: booking.cinema, format: booking.format, time: booking.time, dateLabel: booking.dateLabel,
+        movieId: booking.movieId!,
+        movieTitle: booking.movieTitle,
+        moviePoster: booking.moviePoster,
+        cinema: booking.cinema,
+        cinemaCode: booking.cinemaCode,
+        cinemaAddress: booking.cinemaAddress,
+        cinemaPhone: booking.cinemaPhone,
+        screenName: booking.screenName,
+        format: booking.format,
+        caption: booking.caption,
+        version: booking.version,
+        time: booking.time,
+        dateLabel: booking.dateLabel,
         seats: booking.seats,
         items: combos.filter((c) => booking.combos[c.id]).map((c) => ({ name: c.name, qty: booking.combos[c.id] })),
         total: ticketsTotal(booking) + combosTotal(booking), method, status: "upcoming",

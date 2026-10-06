@@ -12,7 +12,22 @@ const MAX = 6;
 
 export default function Seats() {
   const { booking, patch, reset } = useStore();
-  const m = movies.find((v) => v.id === booking.movieId)!;
+  const m = movies.find((v) => String(v.id) === String(booking.movieId)) || {
+    id: booking.movieId || 1,
+    title: booking.movieTitle || "Phim",
+    backdrop: booking.moviePoster || "",
+    poster: booking.moviePoster || "",
+    age: booking.movieAge || "T13",
+    genre: "Điện ảnh",
+    duration: String(booking.movieDuration || 120),
+    director: "Galaxy Cinema",
+    cast: "",
+    rating: 8.5,
+    votes: 100,
+    status: "now" as const,
+    release: "Đang chiếu",
+    synopsis: "",
+  };
   const key = `${booking.movieId}${booking.cinema}${booking.dateLabel}${booking.time}`;
   const layout = layoutForCinema(booking.cinema);
   const [preview, setPreview] = useState<(SeatCell & { selectedAfterClick: boolean; limitReached: boolean }) | null>(null);
@@ -48,7 +63,9 @@ export default function Seats() {
         <button onClick={() => { reset(); go("/showtimes"); }} className="mb-6 flex items-center gap-2 text-sm font-bold text-white/45 hover:text-white"><Icon name="back" size={17} /> Đổi suất chiếu</button>
         <Steps current={1} />
         <h1 className="text-3xl font-extrabold tracking-tight">Chọn ghế</h1>
-        <p className="mt-2 text-sm text-white/45">{m.title} · {booking.cinema} · {booking.format} · {booking.time}, {booking.dateLabel}</p>
+        <p className="mt-2 text-sm text-white/60">
+          <b className="text-white">{m.title}</b> · {booking.cinema} {booking.screenName ? `(${booking.screenName})` : ""} · <span className="font-bold text-[#f5b50a]">{booking.format}</span> · {booking.time}, {booking.dateLabel}
+        </p>
 
         <section className="mt-8 rounded-[28px] border border-white/65 bg-white/35 p-5 shadow-[0_24px_70px_rgba(83,72,54,.12)] backdrop-blur-xl sm:p-8">
           <div className="mb-6 flex flex-wrap items-end justify-between gap-4">

@@ -13,7 +13,12 @@ export default function Checkout() {
   const { booking, place } = useStore();
   const [method, setMethod] = useState("VNPay");
   const [busy, setBusy] = useState(false);
-  const m = movies.find((v) => v.id === booking.movieId)!;
+  const m = movies.find((v) => String(v.id) === String(booking.movieId)) || {
+    id: booking.movieId || 1,
+    title: booking.movieTitle || "Phim",
+    poster: booking.moviePoster || "",
+    age: booking.movieAge || "T13",
+  };
   const tickets = ticketsTotal(booking), food = combosTotal(booking);
   const items = combos.filter((c) => booking.combos[c.id]);
 
@@ -33,8 +38,10 @@ export default function Checkout() {
             <h2 className="text-lg font-extrabold">Thông tin đơn hàng</h2>
             <dl className="mt-4 divide-y divide-white/8">
               <div className={row}><dt className="text-white/40">Phim</dt><dd className="text-right font-bold">{m.title} ({m.age})</dd></div>
-              <div className={row}><dt className="text-white/40">Suất chiếu</dt><dd className="text-right font-bold">{booking.time} · {booking.dateLabel} · {booking.format}</dd></div>
-              <div className={row}><dt className="text-white/40">Rạp</dt><dd className="text-right font-bold">{booking.cinema}</dd></div>
+              <div className={row}><dt className="text-white/40">Suất chiếu</dt><dd className="text-right font-bold">{booking.time} · {booking.dateLabel} · <span className="text-[#f5b50a]">{booking.format}</span></dd></div>
+              <div className={row}><dt className="text-white/40">Phòng chiếu</dt><dd className="text-right font-bold text-white">{booking.screenName || "Sảnh tiêu chuẩn"}</dd></div>
+              <div className={row}><dt className="text-white/40">Rạp</dt><dd className="text-right font-bold">{booking.cinema} {booking.cinemaCode ? `(${booking.cinemaCode})` : ""}</dd></div>
+              {booking.cinemaAddress && <div className={row}><dt className="text-white/40">Địa chỉ rạp</dt><dd className="text-right text-xs text-white/70 max-w-[280px]">{booking.cinemaAddress}</dd></div>}
               <div className={row}><dt className="text-white/40">Mã ghế</dt><dd className="text-right font-bold text-[#f5b50a]">{booking.seats.map((s) => `${s} (${seatTypeFor(s, booking.seatTypes[s]) === "sweetbox" ? "Sweetbox" : seatTypeFor(s, booking.seatTypes[s]) === "vip" ? "VIP" : "Thường"} · ${fmt(seatPrice(s, booking.seatTypes[s]))})`).join(", ")}</dd></div>
               <div className={row}><dt className="text-white/40">Bắp nước</dt><dd className="text-right font-bold">{items.length ? items.map((c) => <div key={c.id}>{booking.combos[c.id]} × {c.name}</div>) : <span className="font-normal text-white/35">Không có</span>}</dd></div>
             </dl>

@@ -28,18 +28,18 @@ function Routes() {
   const next = query.get("next") || "/home";
   const login = (p: string) => `/login?next=${encodeURIComponent(p)}`;
   const isBooking = path.startsWith("/booking");
-  const movieId = Number(path.match(/^\/movie\/(\d+)$/)?.[1] || query.get("movie") || booking.movieId);
-  const activeMovie = movies.find((item) => item.id === movieId) || movies[0];
+  const movieMatch = path.match(/^\/movie\/(.+)$/);
+  const movieIdParam = movieMatch ? movieMatch[1] : (query.get("movie") || (booking.movieId ? String(booking.movieId) : null));
+  const activeMovie = movies.find((item) => String(item.id) === String(movieIdParam)) || movies[0];
   const backdrop = activeMovie.backdrop;
   const theme = movieThemes[activeMovie.themeKey || "space"];
   const themeStyle = { "--film-accent": theme.accent, "--film-highlight": theme.highlight, "--film-wash": theme.wash, "--film-display": theme.fontFamily } as CSSProperties;
 
   let page;
-  const movie = path.match(/^\/movie\/(\d+)$/);
   if (path === "/login") page = <Auth mode="login" next={next} />;
   else if (path === "/register") page = <Auth mode="register" next={next} />;
-  else if (movie) page = <MovieDetail id={Number(movie[1])} autoPlayTrailer={query.get("trailer") === "1"} />;
-  else if (path === "/showtimes") page = <Showtimes key={`${query.get("movie") ?? "all"}-${query.get("day") ?? "0"}-${query.get("cinema") ?? "all"}`} movieId={query.get("movie") ? Number(query.get("movie")) : null} initialDay={Number(query.get("day") ?? 0)} initialCinema={query.get("cinema")} />;
+  else if (movieMatch) page = <MovieDetail id={isNaN(Number(movieMatch[1])) ? movieMatch[1] : Number(movieMatch[1])} autoPlayTrailer={query.get("trailer") === "1"} />;
+  else if (path === "/showtimes") page = <Showtimes key={`${query.get("movie") ?? "all"}-${query.get("day") ?? "0"}-${query.get("cinema") ?? "all"}`} movieId={query.get("movie") || null} initialDay={Number(query.get("day") ?? 0)} initialCinema={query.get("cinema")} />;
   else if (isBooking && !user) page = <Notice text="Bạn cần đăng nhập để đặt vé." to={login(path)} cta="Đăng nhập" />;
   else if (isBooking && !booking.movieId) page = <Notice text="Bạn chưa chọn suất chiếu nào." to="/showtimes" cta="Chọn suất chiếu" />;
   else if (path === "/booking/seats") page = <Seats />;

@@ -87,8 +87,3 @@ export default function Auth({ mode, next }: { mode: "login" | "register"; next:
     </main>
   );
 }
-// Thêm logic chuyển tab Login/Register trong src/pages/Auth.tsx
-const [isRegister, setIsRegister] = useState(false);
-const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '' });
-
-// Cập nhật router dẫn tới /login và /register trong src/router.tsx
