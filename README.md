@@ -60,6 +60,26 @@ To preview the production build locally:
 npm run preview
 ```
 
+## Google Sign-In
+
+Google Sign-In uses Firebase Authentication. To enable it:
+
+1. Create a Firebase project and register a Web app.
+2. In Firebase Console, open **Authentication → Sign-in method** and enable **Google**.
+3. Add the app's hostname under **Authentication → Settings → Authorized domains**.
+4. Copy `.env.example` to `.env.local` and fill in the Firebase Web app values:
+   `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`,
+   `VITE_FIREBASE_PROJECT_ID`, and `VITE_FIREBASE_APP_ID`.
+5. Restart the Vite development server.
+
+Firebase Authentication provides each Google account with a distinct Firebase UID
+and restores the signed-in session when the app reloads. The Profile page uses
+the Google account's display name, email, and photo. This frontend stores each
+account's CineHub library, history, notifications, and demo orders separately
+in that browser's local storage, keyed by the Firebase UID; it does not sync
+that application data between devices. Movie bookings and payments remain
+demonstration flows and are not stored in a backend.
+
 ---
 
 ## Project Structure

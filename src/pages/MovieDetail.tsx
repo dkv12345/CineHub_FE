@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { movies, seedReviews } from "../data";
 import { go } from "../router";
 import { useStore } from "../store";
-import { btnGhost, btnPrimary, Icon, Modal, Stars } from "../components/ui";
+import { btnBookTicket, btnGhost, btnPrimary, Icon, Modal, Stars } from "../components/ui";
 import { Link } from "../router";
 import { getYouTubeEmbedUrl } from "../services/sessionsApi";
 
@@ -60,7 +60,7 @@ export default function MovieDetail({ id, autoPlayTrailer = false }: { id: numbe
                   <Icon name={isNotified ? "check" : "bell"} size={18} /> {isNotified ? "Đã đăng ký nhận thông báo" : "Nhận thông báo"}
                 </button>
               ) : (
-                <button onClick={() => go(`/showtimes?movie=${m.id}`)} className={btnPrimary}>Đặt vé <Icon name="arrow" size={18} /></button>
+                <button onClick={() => go(`/showtimes?movie=${m.id}`)} className={btnBookTicket}>Đặt vé <Icon name="arrow" size={18} /></button>
               )}
             </div>
             {soon && <p className="mt-3 text-xs text-white/45">Khởi chiếu {m.release}. Chúng tôi sẽ báo cho bạn khi mở bán vé.</p>}
