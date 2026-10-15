@@ -53,7 +53,7 @@ export function Header({ path }: { path: string }) {
               <img src={user.photoURL || avatar} alt="" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
             </button>
             {drop && (
-              <div className="glass-panel absolute right-0 top-12 w-56 overflow-hidden rounded-2xl shadow-2xl" onClick={() => setDrop(false)}>
+              <div className="glass-panel absolute right-0 top-12 w-56 overflow-hidden rounded-2xl shadow-2xl" style={{ backgroundColor: "rgba(255, 255, 255, 0.9)" }} onClick={() => setDrop(false)}>
                 <div className="border-b border-white/8 px-4 py-3"><b className="block text-sm">{user.name}</b><small className="text-white/40">{user.email}</small></div>
                 <Link to="/profile" className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-white/5"><Icon name="user" size={17} /> Hồ sơ của tôi</Link>
                 <Link to="/my-tickets" className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-white/5"><Icon name="ticket" size={17} /> Vé của tôi</Link>

@@ -48,6 +48,7 @@ export type Order = {
   total: number;
   method: string;
   status: "upcoming" | "past";
+  purchasedAt?: number;
 };
 
 const empty: Booking = { movieId: null, cinema: "", format: "", time: "", dateLabel: "", seats: [], seatTypes: {}, combos: {}, expiresAt: null };
@@ -167,7 +168,7 @@ export function Provider({ children }: { children: ReactNode }) {
         dateLabel: booking.dateLabel,
         seats: booking.seats,
         items: combos.filter((c) => booking.combos[c.id]).map((c) => ({ name: c.name, qty: booking.combos[c.id] })),
-        total: ticketsTotal(booking) + combosTotal(booking), method, status: "upcoming",
+        total: ticketsTotal(booking) + combosTotal(booking), method, status: "upcoming", purchasedAt: Date.now(),
       };
       setOrders((x) => [o, ...x]); setLast(o); setBooking(empty);
       return o;

@@ -124,7 +124,7 @@ export default function Home() {
   const [tab, setTab] = useState<"now" | "soon">("now");
   const [catalogFilter, setCatalogFilter] = useState("all");
   const [shelf, setShelf] = useState<"history" | "collection" | "trending">("history");
-  const { user, collections, toggleCollection, recentMovies, watchProgress, trackMovie } = useStore();
+  const { user, collections, toggleCollection, recentMovies, watchProgress, trackMovie, orders } = useStore();
   const filterOptions = [
     ["all", "Tất cả"], ["ghibli", "Studio Ghibli"], ["conan", "Conan"], ["doraemon", "Doraemon"],
     ["western", "US / UK"], ["china", "Trung Quốc"], ["korea", "Hàn Quốc"],
@@ -138,7 +138,28 @@ export default function Home() {
     || (catalogFilter === "korea" && m.country === "Hàn Quốc");
   const list = movies.filter((m) => m.status === tab && matchesCatalog(m));
   const trending = [...movies].filter((m) => m.status === "now").sort((a, b) => b.rating - a.rating).slice(0, 10);
-  const recommended = trending.slice(0, 3);
+  const knownMovieIds = [...collections, ...recentMovies, ...orders.map((order) => order.movieId)];
+  const preferenceMovies = knownMovieIds
+    .map((id) => movies.find((movie) => String(movie.id) === String(id)))
+    .filter((movie): movie is Movie => !!movie);
+  const genreScores = new Map<string, number>();
+  preferenceMovies.forEach((movie) => {
+    const weight = collections.some((id) => String(id) === String(movie.id)) ? 3 : 2;
+    movie.genre.split(",").forEach((genre) => {
+      const key = genre.trim().toLocaleLowerCase();
+      genreScores.set(key, (genreScores.get(key) || 0) + weight);
+    });
+  });
+  const knownIds = new Set(knownMovieIds.map(String));
+  const recommendationPool = movies.filter((movie) => movie.status === "now" && !knownIds.has(String(movie.id)));
+  const personalizedRecommendations = [...recommendationPool]
+    .sort((a, b) => {
+      const score = (movie: Movie) => movie.genre.split(",").reduce((total, genre) => total + (genreScores.get(genre.trim().toLocaleLowerCase()) || 0), 0);
+      return score(b) - score(a) || b.rating - a.rating;
+    })
+    .slice(0, 3);
+  const recommended = personalizedRecommendations;
+  const hasPersonalTaste = genreScores.size > 0;
   const shelfMovies = shelf === "collection" ? collections : shelf === "history" ? recentMovies : trending.map((m) => m.id);
   const shelfItems = shelfMovies.map((id) => movies.find((m) => m.id === id)).filter((m): m is Movie => !!m);
 
@@ -167,28 +188,45 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="mt-12 border-y border-white/12 bg-white/[.025] backdrop-blur-sm">
-        <div className="mx-auto grid max-w-[1400px] gap-8 px-5 py-10 md:grid-cols-[.8fr_2fr] md:items-center md:px-9">
-          <div>
-            <p className="flex items-center gap-2 text-xs font-extrabold uppercase film-highlight"><Icon name="sparkles" size={16} /> CineHub AI</p>
-            <h2 className="mt-2 text-2xl font-extrabold">Dành riêng cho bạn</h2>
-            <p className="mt-2 max-w-sm text-sm leading-6 text-white/45">{user ? `Gợi ý tuần này dành cho ${user.name}.` : "Khám phá những bộ phim hợp gu của bạn."}</p>
-            {!user && <Link to={`/login?next=${encodeURIComponent("/home")}`} className="mt-4 inline-flex items-center gap-2 text-sm font-extrabold text-[#ff4d57] hover:text-white">Đăng nhập để nhận gợi ý chuẩn gu <Icon name="arrow" size={16} /></Link>}
-          </div>
-          {user ? (
-            <div className="grid gap-4 sm:grid-cols-3">
-              {recommended.map((m) => (
-                <article key={m.id} className="flex min-w-0 gap-3 border-l border-white/10 pl-4">
-                  <img src={m.poster} alt={`Poster ${m.title}`} className="h-24 w-16 shrink-0 rounded-md object-cover" />
-                  <div className="min-w-0 py-1"><h3 className="line-clamp-2 text-sm font-extrabold">{m.title}</h3><p className="mt-1 text-xs film-highlight">★ {m.rating} · {m.country || "Quốc tế"}</p><Link to={`/movie/${m.id}`} className="mt-3 inline-block text-xs font-bold text-white/50 hover:text-white">Xem gợi ý <Icon name="chevron" size={12} /></Link></div>
-                </article>
-              ))}
+      {user && (
+        <section className="mt-12 border-y border-white/12 bg-white/[.025] backdrop-blur-sm">
+          <div className="mx-auto max-w-[1400px] px-5 py-10 md:px-9">
+            <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <p className="flex items-center gap-2 text-xs font-extrabold uppercase film-highlight"><Icon name="sparkles" size={16} /> Gợi ý cá nhân</p>
+                <h2 className="mt-2 text-2xl font-extrabold">Có thể bạn sẽ thích</h2>
+                <p className="mt-2 text-sm text-white/45">
+                  {hasPersonalTaste ? `Dựa trên phim bạn đã lưu, xem và đặt vé, ${user.name}.` : `Khám phá những phim đang được yêu thích, ${user.name}.`}
+                </p>
+              </div>
+              <Link to="/showtimes" className="text-xs font-bold text-white/45 hover:text-white">Xem lịch chiếu <Icon name="chevron" size={14} /></Link>
             </div>
-          ) : (
-            <div className="flex flex-wrap gap-2">{recommended.map((m) => <span key={m.id} className="rounded-full border border-white/10 px-3 py-2 text-xs font-semibold text-white/50">{m.genre.split(",")[0]}</span>)}</div>
-          )}
-        </div>
-      </section>
+            {recommended.length ? (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {recommended.map((movie) => (
+                  <article key={movie.id} className="glass-card flex min-w-0 gap-4 rounded-2xl p-3">
+                    <Link to={`/movie/${movie.id}`} onClick={() => trackMovie(movie.id)} className="h-32 w-[86px] shrink-0 overflow-hidden rounded-xl">
+                      <img src={movie.poster} alt={`Poster ${movie.title}`} className="h-full w-full object-cover transition duration-500 hover:scale-105" />
+                    </Link>
+                    <div className="flex min-w-0 flex-1 flex-col py-1">
+                      <h3 className="line-clamp-2 font-extrabold">{movie.title}</h3>
+                      <p className="mt-1 text-xs film-highlight">★ {movie.rating || "Mới"} · {movie.country || "Quốc tế"}</p>
+                      <p className="mt-2 line-clamp-2 text-xs leading-5 text-white/45">
+                        {hasPersonalTaste
+                          ? `Hợp gu ${movie.genre.split(",").find((genre) => genreScores.has(genre.trim().toLocaleLowerCase()))?.trim() || movie.genre.split(",")[0]}`
+                          : movie.genre}
+                      </p>
+                      <Link to={`/movie/${movie.id}`} onClick={() => trackMovie(movie.id)} className="mt-auto pt-3 text-xs font-bold text-white/65 hover:text-white">Khám phá phim <Icon name="chevron" size={12} /></Link>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <p className="rounded-2xl border border-white/10 px-5 py-8 text-center text-sm text-white/45">Bạn đã khám phá hết các phim đang chiếu. Hãy quay lại sau để xem gợi ý mới.</p>
+            )}
+          </div>
+        </section>
+      )}
 
       <section className="mx-auto grid max-w-[1400px] gap-5 px-5 py-14 md:px-9 lg:grid-cols-[220px_minmax(0,1fr)] lg:grid-rows-[auto_auto]">
         <aside className="glass-panel h-fit rounded-2xl p-3 lg:col-start-1 lg:row-start-2">

@@ -79,6 +79,8 @@ account's CineHub library, history, notifications, and demo orders separately
 in that browser's local storage, keyed by the Firebase UID; it does not sync
 that application data between devices. Movie bookings and payments remain
 demonstration flows and are not stored in a backend.
+The Profile page shows each account's Google identity and its locally stored
+successful transactions, including purchase time, payment method, and total.
 
 ---
 
