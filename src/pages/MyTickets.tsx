@@ -3,7 +3,7 @@ import { movies } from "../data";
 import { Link } from "../router";
 import { useStore } from "../store";
 import type { Order } from "../store";
-import { btnPrimary, Icon, Modal } from "../components/ui";
+import { btnBookTicket, Icon, Modal } from "../components/ui";
 import { hash } from "../data";
 
 function QR({ code }: { code: string }) {
@@ -81,7 +81,7 @@ export default function MyTickets() {
       ) : (
         <div className="mt-8 rounded-2xl border border-dashed border-white/15 px-6 py-16 text-center">
           <p className="text-sm text-white/45">Bạn chưa có vé nào ở mục này.</p>
-          <Link to="/showtimes" className={`${btnPrimary} mt-5`}>Đặt vé ngay</Link>
+          <Link to="/showtimes" className={`${btnBookTicket} mt-5`}>Đặt vé ngay</Link>
         </div>
       )}
       {qr && qm && (

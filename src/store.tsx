@@ -1,8 +1,10 @@
 import { createContext, useContext, useState } from "react";
+import { useEffect } from "react";
 import type { ReactNode } from "react";
 import { combos, dayInfo, PRICE } from "./data";
+import { isFirebaseConfigured, toCineHubUser, watchGoogleAuth, signOutGoogle } from "./services/firebaseAuth";
 
-export type User = { name: string; email: string } | null;
+export type User = { uid?: string; name: string; email: string; photoURL?: string; provider?: "google" | "email" } | null;
 export type SeatZone = "normal" | "vip" | "sweetbox";
 export type Booking = {
   movieId: number | string | null;
@@ -46,9 +48,24 @@ export type Order = {
   total: number;
   method: string;
   status: "upcoming" | "past";
+  purchasedAt?: number;
 };
 
 const empty: Booking = { movieId: null, cinema: "", format: "", time: "", dateLabel: "", seats: [], seatTypes: {}, combos: {}, expiresAt: null };
+const accountStorageKey = (user: NonNullable<User> | null) => user
+  ? `cinehub:account:${encodeURIComponent(user.uid || user.email.toLowerCase())}`
+  : "cinehub:guest";
+const readStored = <T,>(key: string, fallback: T): T => {
+  const value = localStorage.getItem(key);
+  if (value === null) return fallback;
+  try {
+    return JSON.parse(value) as T;
+  } catch (error) {
+    if (!(error instanceof SyntaxError)) throw error;
+    localStorage.removeItem(key);
+    return fallback;
+  }
+};
 
 const seedOrders: Order[] = [
   { code: "CH-0930-7K2MQ", movieId: 2, cinema: "CGV Vincom Landmark 81", format: "2D", time: "19:45", dateLabel: dayInfo(2).label, seats: ["E7", "E8"], items: [{ name: "Combo Đôi", qty: 1 }], total: 309000, method: "VNPay", status: "upcoming" },
@@ -65,7 +82,7 @@ export const ticketsTotal = (b: Booking) => b.seats.reduce((s, x) => s + seatPri
 export const combosTotal = (b: Booking) => combos.reduce((s, c) => s + (b.combos[c.id] || 0) * c.price, 0);
 
 type Ctx = {
-  user: User; login: (u: NonNullable<User>) => void; logout: () => void;
+  user: User; authLoading: boolean; login: (u: NonNullable<User>) => void; logout: () => Promise<void>;
   booking: Booking; patch: (p: Partial<Booking>) => void; startBooking: (p: Partial<Booking>) => void; reset: () => void;
   orders: Order[]; lastOrder: Order | null; place: (method: string) => Order;
   notified: (number | string)[]; toggleNotify: (id: number | string) => void;
@@ -77,20 +94,45 @@ export const useStore = () => useContext(C);
 
 export function Provider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User>(null);
+  const [authLoading, setAuthLoading] = useState(isFirebaseConfigured);
   const [booking, setBooking] = useState<Booking>(empty);
-  const [orders, setOrders] = useState<Order[]>(seedOrders);
+  const [orders, setOrders] = useState<Order[]>(() => readStored("cinehub:guest:orders", seedOrders));
   const [lastOrder, setLast] = useState<Order | null>(null);
-  const [notified, setNotified] = useState<(number | string)[]>([]);
-  const [collections, setCollections] = useState<(number | string)[]>(() => {
-    try { return JSON.parse(localStorage.getItem("cinehub:collection") || "[]") as (number | string)[]; }
-    catch { return []; }
-  });
-  const [recentMovies, setRecentMovies] = useState<(number | string)[]>([]);
-  const [watchProgress, setWatchProgress] = useState<Record<string | number, number>>({});
+  const [notified, setNotified] = useState<(number | string)[]>(() => readStored("cinehub:guest:notified", []));
+  const [collections, setCollections] = useState<(number | string)[]>(() => readStored("cinehub:guest:collection", readStored("cinehub:collection", [])));
+  const [recentMovies, setRecentMovies] = useState<(number | string)[]>(() => readStored("cinehub:guest:recent", []));
+  const [watchProgress, setWatchProgress] = useState<Record<string | number, number>>(() => readStored("cinehub:guest:progress", {}));
+
+  const activateUser = (nextUser: User) => {
+    const key = accountStorageKey(nextUser);
+    setUser(nextUser);
+    setOrders(readStored(`${key}:orders`, nextUser ? [] : seedOrders));
+    setLast(null);
+    setNotified(readStored(`${key}:notified`, []));
+    setCollections(readStored(`${key}:collection`, nextUser ? [] : readStored("cinehub:collection", [])));
+    setRecentMovies(readStored(`${key}:recent`, []));
+    setWatchProgress(readStored(`${key}:progress`, {}));
+  };
+
+  useEffect(() => {
+    if (!isFirebaseConfigured) return;
+    return watchGoogleAuth((firebaseUser) => {
+      activateUser(firebaseUser ? toCineHubUser(firebaseUser) : null);
+      setAuthLoading(false);
+    });
+  }, []);
+
+  useEffect(() => {
+    const key = accountStorageKey(user);
+    localStorage.setItem(`${key}:orders`, JSON.stringify(orders));
+    localStorage.setItem(`${key}:notified`, JSON.stringify(notified));
+    localStorage.setItem(`${key}:collection`, JSON.stringify(collections));
+    localStorage.setItem(`${key}:recent`, JSON.stringify(recentMovies));
+    localStorage.setItem(`${key}:progress`, JSON.stringify(watchProgress));
+  }, [user, orders, notified, collections, recentMovies, watchProgress]);
 
   const toggleCollection = (id: number | string) => setCollections((items) => {
     const next = items.includes(id) ? items.filter((item) => item !== id) : [id, ...items];
-    localStorage.setItem("cinehub:collection", JSON.stringify(next));
     return next;
   });
   const trackMovie = (id: number | string, progress = 8) => {
@@ -99,7 +141,8 @@ export function Provider({ children }: { children: ReactNode }) {
   };
 
   const value: Ctx = {
-    user, login: setUser, logout: () => setUser(null),
+    user, authLoading, login: activateUser,
+    logout: async () => { await signOutGoogle(); activateUser(null); },
     booking,
     patch: (p) => setBooking((b) => ({ ...b, ...p })),
     startBooking: (p) => setBooking({ ...empty, ...p, expiresAt: Date.now() + 15 * 60 * 1000 }),
@@ -125,7 +168,7 @@ export function Provider({ children }: { children: ReactNode }) {
         dateLabel: booking.dateLabel,
         seats: booking.seats,
         items: combos.filter((c) => booking.combos[c.id]).map((c) => ({ name: c.name, qty: booking.combos[c.id] })),
-        total: ticketsTotal(booking) + combosTotal(booking), method, status: "upcoming",
+        total: ticketsTotal(booking) + combosTotal(booking), method, status: "upcoming", purchasedAt: Date.now(),
       };
       setOrders((x) => [o, ...x]); setLast(o); setBooking(empty);
       return o;

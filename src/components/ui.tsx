@@ -38,9 +38,9 @@ const paths: Record<string, ReactNode> = {
   info: <><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></>,
 };
 
-export function Icon({ name, size = 20 }: { name: string; size?: number }) {
+export function Icon({ name, size = 20, color }: { name: string; size?: number; color?: string }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color ?? "currentColor"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       {paths[name]}
     </svg>
   );
@@ -73,6 +73,7 @@ export function Modal({ onClose, children, wide }: { onClose: () => void; childr
 }
 
 export const btnPrimary = "btn-primary inline-flex items-center justify-center gap-3 rounded-lg bg-[var(--film-accent)] px-6 py-3.5 text-sm font-extrabold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40";
+export const btnBookTicket = "book-ticket-btn inline-flex items-center justify-center gap-3 rounded-xl bg-[#E50914] px-6 py-3 text-sm font-bold text-white shadow-[0_4px_14px_rgba(229,9,20,0.18)] transition-all duration-200 hover:bg-[#B81D24] hover:shadow-[0_6px_18px_rgba(184,29,36,0.24)] active:scale-[0.98] active:bg-[#991B1B] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E50914] disabled:cursor-not-allowed disabled:opacity-40";
 export const btnGhost = "inline-flex items-center justify-center gap-2 rounded-lg border border-white/15 bg-white/[.04] px-5 py-3 text-sm font-bold text-white transition hover:bg-white/10";
 
 export function Steps({ current }: { current: 1 | 2 | 3 }) {

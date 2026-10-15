@@ -143,6 +143,10 @@ button {
   color: #fff !important;
 }
 
+.cinema-light .book-ticket-btn {
+  color: #fff !important;
+}
+
 .cinema-light .poster-art,
 .cinema-light .poster-art [class*="text-white"] {
   color: rgba(255, 255, 255, 0.86) !important;
@@ -170,6 +174,11 @@ button {
 
 .cinema-light .chat-panel [class*="text-white"] {
   color: rgba(255, 255, 255, 0.82) !important;
+}
+
+.cinema-light footer,
+.cinema-light footer [class*="text-white"] {
+  color: #fff !important;
 }
 
 .cinema-light header {

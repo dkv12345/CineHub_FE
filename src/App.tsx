@@ -11,6 +11,7 @@ import Concessions from "./pages/Concessions";
 import Checkout from "./pages/Checkout";
 import { Failed, Success } from "./pages/Result";
 import MyTickets from "./pages/MyTickets";
+import Profile from "./pages/Profile";
 import { movies, movieThemes } from "./data";
 import type { CSSProperties } from "react";
 
@@ -24,7 +25,7 @@ function Notice({ text, to, cta }: { text: string; to: string; cta: string }) {
 
 function Routes() {
   const { path, query } = useRoute();
-  const { user, booking } = useStore();
+  const { user, authLoading, booking } = useStore();
   const next = query.get("next") || "/home";
   const login = (p: string) => `/login?next=${encodeURIComponent(p)}`;
   const isBooking = path.startsWith("/booking");
@@ -47,7 +48,12 @@ function Routes() {
   else if (path === "/booking/checkout") page = <Checkout />;
   else if (path === "/result/success") page = <Success />;
   else if (path === "/result/failed") page = <Failed reason={query.get("reason") || "error"} />;
-  else if (path === "/my-tickets") page = user ? <MyTickets /> : <Notice text="Đăng nhập để xem vé của bạn." to={login("/my-tickets")} cta="Đăng nhập" />;
+  else if (path === "/profile") page = authLoading
+    ? <Notice text="Đang kiểm tra phiên đăng nhập..." to="/login" cta="Đăng nhập" />
+    : user ? <Profile /> : <Notice text="Đăng nhập để xem hồ sơ CineHub của bạn." to={login("/profile")} cta="Đăng nhập" />;
+  else if (path === "/my-tickets") page = authLoading
+    ? <Notice text="Đang kiểm tra phiên đăng nhập..." to="/login" cta="Đăng nhập" />
+    : user ? <MyTickets /> : <Notice text="Đăng nhập để xem vé của bạn." to={login("/my-tickets")} cta="Đăng nhập" />;
   else page = <Home />;
 
   return (
